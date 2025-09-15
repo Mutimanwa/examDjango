@@ -1,0 +1,269 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Gestion des Employés{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-users me-2"></i>
+                Gestion des Employés
+            </h1>
+            <a href="{% url 'employees:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>
+                Retour au tableau de bord
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="department" class="form-label">Département</label>
+                        <select class="form-select" id="department" name="department">
+                            <option value="">Tous les départements</option>
+                            {% for dept in departments %}
+                            <option value="{{ dept.id }}" {% if selected_department == dept.id|stringformat:"s" %}selected{% endif %}>
+                                {{ dept.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-filter me-1"></i>
+                            Filtrer
+                        </button>
+                        <a href="{% url 'employees:manage_employees' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>
+                            Effacer
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiques -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body text-center">
+                <div class="stat-number text-primary">{{ employees.count }}</div>
+                <div class="stat-label">Total Employés</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body text-center">
+                <div class="stat-number text-success">
+                    {% for emp in employees %}
+                        {% if emp.is_active %}{{ forloop.counter0|add:1 }}{% endif %}
+                    {% empty %}0{% endfor %}
+                </div>
+                <div class="stat-label">Actifs</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body text-center">
+                <div class="stat-number text-info">{{ departments.count }}</div>
+                <div class="stat-label">Départements</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body text-center">
+                <div class="stat-number text-warning">
+                    {% for emp in employees %}
+                        {% if emp.role == 'HR' %}{{ forloop.counter0|add:1 }}{% endif %}
+                    {% empty %}0{% endfor %}
+                </div>
+                <div class="stat-label">HR/Admin</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Liste des employés -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-table me-2"></i>
+                    Liste des Employés ({{ employees.count }} employé{{ employees.count|pluralize }})
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if employees %}
+                <div class="table-responsive">
+                    <table class="table table-hover" id="employeesTable">
+                        <thead>
+                            <tr>
+                                <th>Photo</th>
+                                <th>Nom</th>
+                                <th>ID Employé</th>
+                                <th>Département</th>
+                                <th>Rôle</th>
+                                <th>Salaire</th>
+                                <th>Date d'embauche</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for emp in employees %}
+                            <tr>
+                                <td>
+                                    <div class="avatar-circle">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong>{{ emp.user.get_full_name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ emp.user.email }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ emp.employee_id }}</span>
+                                </td>
+                                <td>{{ emp.department.name }}</td>
+                                <td>
+                                    {% if emp.role == 'HR' %}
+                                        <span class="badge bg-danger">{{ emp.get_role_display }}</span>
+                                    {% elif emp.role == 'MANAGER' %}
+                                        <span class="badge bg-warning">{{ emp.get_role_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-info">{{ emp.get_role_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ emp.base_salary|floatformat:2 }} €</td>
+                                <td>{{ emp.hire_date|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if emp.is_active %}
+                                        <span class="badge bg-success">Actif</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactif</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                data-bs-toggle="modal" data-bs-target="#employeeModal{{ emp.id }}">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <a href="{% url 'attendance:mark_employee_attendance' emp.id %}" 
+                                           class="btn btn-sm btn-outline-success">
+                                            <i class="fas fa-clock"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-users fa-3x mb-3"></i>
+                    <h5>Aucun employé trouvé</h5>
+                    <p>Essayez de modifier vos filtres.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modales pour les détails des employés -->
+{% for emp in employees %}
+<div class="modal fade" id="employeeModal{{ emp.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user me-2"></i>
+                    {{ emp.user.get_full_name }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Informations personnelles</h6>
+                        <p><strong>Nom :</strong> {{ emp.user.get_full_name }}</p>
+                        <p><strong>Email :</strong> {{ emp.user.email }}</p>
+                        <p><strong>Téléphone :</strong> {{ emp.phone_number|default:"Non renseigné" }}</p>
+                        <p><strong>Adresse :</strong> {{ emp.address|default:"Non renseignée" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Informations professionnelles</h6>
+                        <p><strong>ID Employé :</strong> {{ emp.employee_id }}</p>
+                        <p><strong>Département :</strong> {{ emp.department.name }}</p>
+                        <p><strong>Rôle :</strong> {{ emp.get_role_display }}</p>
+                        <p><strong>Salaire :</strong> {{ emp.base_salary|floatformat:2 }} €</p>
+                        <p><strong>Date d'embauche :</strong> {{ emp.hire_date|date:"d/m/Y" }}</p>
+                        <p><strong>Statut :</strong> 
+                            {% if emp.is_active %}
+                                <span class="badge bg-success">Actif</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactif</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                <a href="{% url 'attendance:mark_employee_attendance' emp.id %}" class="btn btn-primary">
+                    <i class="fas fa-clock me-1"></i>
+                    Marquer Présence
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #007bff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Fonction d'export CSV
+    window.exportToCSV = function() {
+        exportToCSV('employeesTable', 'employes.csv');
+    };
+});
+</script>
+{% endblock %}

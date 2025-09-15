@@ -1,0 +1,246 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Marquer Présence - {{ target_employee.user.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-user-clock me-2"></i>
+                Marquer Présence - {{ target_employee.user.get_full_name }}
+            </h1>
+            <a href="{% url 'attendance:attendance_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>
+                Retour à la liste
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Informations employé -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-user me-2"></i>
+                    Informations Employé
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="avatar-circle-large">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <h4>{{ target_employee.user.get_full_name }}</h4>
+                        <p class="text-muted mb-1">
+                            <strong>ID Employé :</strong> {{ target_employee.employee_id }}
+                        </p>
+                        <p class="text-muted mb-1">
+                            <strong>Département :</strong> {{ target_employee.department.name }}
+                        </p>
+                        <p class="text-muted mb-0">
+                            <strong>Rôle :</strong> {{ target_employee.get_role_display }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Formulaire de marquage -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-plus me-2"></i>
+                    Nouvelle Présence
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="date" class="form-label">Date *</label>
+                            <input type="date" class="form-control" id="date" name="date" 
+                                   value="{{ today }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="status" class="form-label">Statut *</label>
+                            <select class="form-select" id="status" name="status" required>
+                                <option value="">Sélectionner un statut</option>
+                                {% for value, label in status_choices %}
+                                <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="check_in_time" class="form-label">Heure d'arrivée</label>
+                            <input type="time" class="form-control" id="check_in_time" name="check_in_time">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="check_out_time" class="form-label">Heure de départ</label>
+                            <input type="time" class="form-control" id="check_out_time" name="check_out_time">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                  placeholder="Notes optionnelles..."></textarea>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>
+                            Enregistrer la Présence
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Instructions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Instructions
+                </h5>
+            </div>
+            <div class="card-body">
+                <h6>Statuts disponibles :</h6>
+                <ul class="list-unstyled">
+                    <li><span class="badge bg-success me-2">Présent</span> Employé présent toute la journée</li>
+                    <li><span class="badge bg-warning me-2">Demi-journée</span> Employé présent une demi-journée</li>
+                    <li><span class="badge bg-danger me-2">Absent</span> Employé absent</li>
+                    <li><span class="badge bg-info me-2">Congé</span> Employé en congé autorisé</li>
+                </ul>
+                
+                <hr>
+                
+                <h6>Conseils :</h6>
+                <ul class="small">
+                    <li>Les heures d'arrivée et de départ sont optionnelles</li>
+                    <li>Une présence ne peut être marquée qu'une fois par jour par employé</li>
+                    <li>Les notes peuvent être utilisées pour des remarques spéciales</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Présences récentes -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>
+                    Présences Récentes
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_attendances %}
+                <div class="list-group list-group-flush">
+                    {% for attendance in recent_attendances %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold">{{ attendance.date|date:"d/m/Y" }}</div>
+                            <small class="text-muted">
+                                {% if attendance.check_in_time and attendance.check_out_time %}
+                                    {{ attendance.check_in_time|time:"H:i" }} - {{ attendance.check_out_time|time:"H:i" }}
+                                {% endif %}
+                            </small>
+                        </div>
+                        <span class="badge badge-{{ attendance.status|lower|cut:'_' }}">
+                            {{ attendance.get_status_display }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-3">
+                    <i class="fas fa-inbox fa-2x mb-2"></i>
+                    <p>Aucune présence récente.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.avatar-circle-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: #007bff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin: 0 auto;
+}
+
+.list-group-item {
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+}
+
+.list-group-item:first-child {
+    border-top: none;
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-remplissage des heures selon le statut
+    const statusSelect = document.getElementById('status');
+    const checkInTime = document.getElementById('check_in_time');
+    const checkOutTime = document.getElementById('check_out_time');
+    
+    statusSelect.addEventListener('change', function() {
+        if (this.value === 'PRESENT') {
+            checkInTime.value = '09:00';
+            checkOutTime.value = '17:00';
+        } else if (this.value === 'HALF_DAY') {
+            checkInTime.value = '09:00';
+            checkOutTime.value = '13:00';
+        } else if (this.value === 'ABSENT' || this.value === 'LEAVE') {
+            checkInTime.value = '';
+            checkOutTime.value = '';
+        }
+    });
+    
+    // Validation du formulaire
+    const form = document.querySelector('.needs-validation');
+    form.addEventListener('submit', function(e) {
+        if (!form.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+});
+</script>
+{% endblock %}

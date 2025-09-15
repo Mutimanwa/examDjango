@@ -1,0 +1,249 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Tableau de bord Manager{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-user-tie me-2"></i>
+                Tableau de bord Manager - {{ employee.department.name }}
+            </h1>
+            <div class="text-muted">
+                <i class="fas fa-clock me-1"></i>
+                <span class="current-time"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiques du département -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card h-100">
+            <div class="card-body text-center">
+                <div class="stat-number">{{ department_stats.total_employees }}</div>
+                <div class="stat-label">Employés du Département</div>
+                <i class="fas fa-users fa-2x text-primary mt-2"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card h-100">
+            <div class="card-body text-center">
+                <div class="stat-number">{{ department_stats.total_attendances }}</div>
+                <div class="stat-label">Présences ce Mois</div>
+                <i class="fas fa-calendar-check fa-2x text-success mt-2"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card h-100">
+            <div class="card-body text-center">
+                <div class="stat-number">{{ department_stats.present_days }}</div>
+                <div class="stat-label">Jours Présents</div>
+                <i class="fas fa-check-circle fa-2x text-success mt-2"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card h-100">
+            <div class="card-body text-center">
+                <div class="stat-number">{{ department_stats.absent_days }}</div>
+                <div class="stat-label">Jours Absents</div>
+                <i class="fas fa-times-circle fa-2x text-danger mt-2"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions rapides -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>
+                    Actions Rapides
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'attendance:mark_attendance' %}" class="btn btn-primary w-100">
+                            <i class="fas fa-plus me-2"></i>
+                            Marquer Présence
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'attendance:attendance_list' %}" class="btn btn-info w-100">
+                            <i class="fas fa-list me-2"></i>
+                            Voir Présences
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'employees:salary_report' %}" class="btn btn-success w-100">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            Rapport Salaires
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'employees:manage_employees' %}" class="btn btn-warning w-100">
+                            <i class="fas fa-users me-2"></i>
+                            Gérer Employés
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Employés du département -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-users me-2"></i>
+                    Employés du Département
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if department_employees %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Rôle</th>
+                                <th>ID Employé</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for emp in department_employees %}
+                            <tr>
+                                <td>
+                                    <strong>{{ emp.user.get_full_name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ emp.user.email }}</small>
+                                </td>
+                                <td>
+                                    {% if emp.role == 'MANAGER' %}
+                                        <span class="badge bg-warning">{{ emp.get_role_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-info">{{ emp.get_role_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ emp.employee_id }}</td>
+                                <td>
+                                    {% if emp.is_active %}
+                                        <span class="badge bg-success">Actif</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactif</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'attendance:mark_employee_attendance' emp.id %}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-clock"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-users fa-3x mb-3"></i>
+                    <p>Aucun employé dans ce département.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Présences récentes du département -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>
+                    Présences Récentes
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if department_attendances %}
+                <div class="list-group list-group-flush">
+                    {% for attendance in department_attendances %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold">{{ attendance.employee.user.get_full_name }}</div>
+                            <small class="text-muted">{{ attendance.date|date:"d/m/Y" }}</small>
+                        </div>
+                        <span class="badge badge-{{ attendance.status|lower|cut:'_' }}">
+                            {{ attendance.get_status_display }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{% url 'attendance:attendance_list' %}" class="btn btn-outline-primary btn-sm">
+                        Voir toutes les présences
+                    </a>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-inbox fa-2x mb-3"></i>
+                    <p>Aucune présence récente.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gestion du département -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-cogs me-2"></i>
+                    Gestion du Département
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'attendance:attendance_list' %}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-list me-2"></i>
+                            Gérer les Présences
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'employees:salary_report' %}" class="btn btn-outline-success w-100">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            Rapports de Salaires
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'employees:manage_employees' %}" class="btn btn-outline-info w-100">
+                            <i class="fas fa-users me-2"></i>
+                            Gérer les Employés
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,191 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Liste des Présences{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="h5 mb-0">
+                <i class="fas fa-list me-2"></i>
+                Liste des Présences
+            </h5>
+            <a href="{% url 'attendance:mark_attendance' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i>
+                Marquer Présence
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-filter me-2"></i>
+                    Filtres
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="department" class="form-label">Département</label>
+                        <select class="form-select" id="department" name="department">
+                            <option value="">Tous les départements</option>
+                            {% for dept in departments %}
+                            <option value="{{ dept.id }}" {% if filters.department == dept.id|stringformat:"s" %}selected{% endif %}>
+                                {{ dept.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="employee" class="form-label">Employé</label>
+                        <select class="form-select" id="employee" name="employee">
+                            <option value="">Tous les employés</option>
+                            {% for emp in employees %}
+                            <option value="{{ emp.id }}" {% if filters.employee == emp.id|stringformat:"s" %}selected{% endif %}>
+                                {{ emp.user.get_full_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="status" class="form-label">Statut</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="">Tous les statuts</option>
+                            {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="date_from" class="form-label">Date début</label>
+                        <input type="date" class="form-control" id="date_from" name="date_from" 
+                               value="{{ filters.date_from }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="date_to" class="form-label">Date fin</label>
+                        <input type="date" class="form-control" id="date_to" name="date_to" 
+                               value="{{ filters.date_to }}">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-search me-1"></i>
+                            Filtrer
+                        </button>
+                        <a href="{% url 'attendance:attendance_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>
+                            Effacer
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Liste des présences -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-table me-2"></i>
+                    Présences ({{ attendances.count }} résultat{{ attendances.count|pluralize }})
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if attendances %}
+                <div class="table-responsive">
+                    <table class="table table-hover" id="attendanceTable">
+                        <thead>
+                            <tr>
+                                <th>Employé</th>
+                                <th>Département</th>
+                                <th>Date</th>
+                                <th>Statut</th>
+                                <th>Heures</th>
+                                <th>Marqué par</th>
+                                <th>Notes</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attendance in attendances %}
+                            <tr>
+                                <td>
+                                    <strong>{{ attendance.employee.user.get_full_name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ attendance.employee.employee_id }}</small>
+                                </td>
+                                <td>{{ attendance.employee.department.name }}</td>
+                                <td>{{ attendance.date|date:"d/m/Y" }}</td>
+                                <td>
+                                    <span class="badge badge-{{ attendance.status|lower|cut:'_' }}">
+                                        {{ attendance.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if attendance.check_in_time and attendance.check_out_time %}
+                                        {{ attendance.check_in_time|time:"H:i" }} - {{ attendance.check_out_time|time:"H:i" }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if attendance.marked_by %}
+                                        {{ attendance.marked_by.get_full_name|default:attendance.marked_by.username }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if attendance.notes %}
+                                        <span class="text-muted" title="{{ attendance.notes }}">
+                                            {{ attendance.notes|truncatechars:30 }}
+                                        </span>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'attendance:mark_employee_attendance' attendance.employee.id %}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                    <h5>Aucune présence trouvée</h5>
+                    <p>Essayez de modifier vos filtres ou marquez une nouvelle présence.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Fonction d'export CSV
+    window.exportToCSV = function() {
+        exportToCSV('attendanceTable', 'presences.csv');
+    };
+});
+</script>
+{% endblock %}

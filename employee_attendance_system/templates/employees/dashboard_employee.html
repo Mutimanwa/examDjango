@@ -1,0 +1,248 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Mon Tableau de bord{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-user me-2"></i>
+                Mon Tableau de bord
+            </h1>
+            <div class="text-muted">
+                <i class="fas fa-clock me-1"></i>
+                <span class="current-time"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Informations personnelles -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-id-card me-2"></i>
+                    Mes Informations
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Nom :</strong> {{ employee.user.get_full_name }}</p>
+                        <p><strong>ID Employé :</strong> {{ employee.employee_id }}</p>
+                        <p><strong>Département :</strong> {{ employee.department.name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Rôle :</strong> {{ employee.get_role_display }}</p>
+                        <p><strong>Date d'embauche :</strong> {{ employee.hire_date|date:"d/m/Y" }}</p>
+                        <p><strong>Salaire de base :</strong> {{ employee.base_salary|floatformat:2 }} €</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiques de présence du mois -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card h-100">
+            <div class="card-body text-center">
+                <div class="stat-number text-success">{{ attendance_stats.present }}</div>
+                <div class="stat-label">Jours Présents</div>
+                <i class="fas fa-check-circle fa-2x text-success mt-2"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card h-100">
+            <div class="card-body text-center">
+                <div class="stat-number text-danger">{{ attendance_stats.absent }}</div>
+                <div class="stat-label">Jours Absents</div>
+                <i class="fas fa-times-circle fa-2x text-danger mt-2"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card h-100">
+            <div class="card-body text-center">
+                <div class="stat-number text-warning">{{ attendance_stats.half_day }}</div>
+                <div class="stat-label">Demi-journées</div>
+                <i class="fas fa-clock fa-2x text-warning mt-2"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card h-100">
+            <div class="card-body text-center">
+                <div class="stat-number text-primary">{{ attendance_stats.percentage }}%</div>
+                <div class="stat-label">Taux de Présence</div>
+                <i class="fas fa-chart-line fa-2x text-primary mt-2"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions rapides -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>
+                    Actions Rapides
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'attendance:my_attendance' %}" class="btn btn-primary w-100">
+                            <i class="fas fa-list me-2"></i>
+                            Mes Présences
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'employees:payslips' %}" class="btn btn-success w-100">
+                            <i class="fas fa-file-invoice me-2"></i>
+                            Mes Bulletins de Paie
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'employees:profile' %}" class="btn btn-info w-100">
+                            <i class="fas fa-user-edit me-2"></i>
+                            Modifier Mon Profil
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Présences récentes -->
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>
+                    Mes Présences Récentes
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if my_attendances %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Statut</th>
+                                <th>Heures</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attendance in my_attendances %}
+                            <tr>
+                                <td>{{ attendance.date|date:"d/m/Y" }}</td>
+                                <td>
+                                    <span class="badge badge-{{ attendance.status|lower|cut:'_' }}">
+                                        {{ attendance.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if attendance.check_in_time and attendance.check_out_time %}
+                                        {{ attendance.check_in_time|time:"H:i" }} - {{ attendance.check_out_time|time:"H:i" }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if attendance.notes %}
+                                        <span class="text-muted">{{ attendance.notes|truncatechars:30 }}</span>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{% url 'attendance:my_attendance' %}" class="btn btn-outline-primary">
+                        Voir toutes mes présences
+                    </a>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                    <p>Aucune présence enregistrée ce mois.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bulletins de paie récents -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-invoice me-2"></i>
+                    Bulletins de Paie Récents
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_payslips %}
+                <div class="list-group list-group-flush">
+                    {% for payslip in recent_payslips %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold">{{ payslip.month }}/{{ payslip.year }}</div>
+                            <small class="text-muted">{{ payslip.net_salary|floatformat:2 }} €</small>
+                        </div>
+                        <a href="{% url 'employees:download_payslip' payslip.year payslip.month %}" 
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-download"></i>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{% url 'employees:payslips' %}" class="btn btn-outline-primary btn-sm">
+                        Voir tous les bulletins
+                    </a>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-file-invoice fa-2x mb-3"></i>
+                    <p>Aucun bulletin de paie disponible.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Avertissement sur les déductions -->
+{% if attendance_stats.percentage < 75 %}
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Attention !</strong> Votre taux de présence est de {{ attendance_stats.percentage }}%, 
+            ce qui est inférieur à 75%. Une déduction de 15% sera appliquée à votre salaire de base 
+            pour ce mois.
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

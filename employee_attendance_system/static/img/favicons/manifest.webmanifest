@@ -1,0 +1,16 @@
+{
+  "name": "LaVision",
+  "short_name": "LaVision",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2c7be5",
+  "icons": [
+    { "src": "/img/favicons/favicon-32x32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "/img/favicons/favicon-16x16.png", "sizes": "16x16", "type": "image/png" },
+    { "src": "/img/favicons/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}
+
+

@@ -1,0 +1,116 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Calculer les Salaires{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-calculator me-2"></i>
+                Calculer les Salaires
+            </h1>
+            <a href="{% url 'employees:salary_report' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>
+                Retour aux rapports
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    Sélectionner la Période
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="month" class="form-label">Mois *</label>
+                            <select class="form-select" id="month" name="month" required>
+                                <option value="">Sélectionner un mois</option>
+                                <option value="1" {% if current_month == 1 %}selected{% endif %}>Janvier</option>
+                                <option value="2" {% if current_month == 2 %}selected{% endif %}>Février</option>
+                                <option value="3" {% if current_month == 3 %}selected{% endif %}>Mars</option>
+                                <option value="4" {% if current_month == 4 %}selected{% endif %}>Avril</option>
+                                <option value="5" {% if current_month == 5 %}selected{% endif %}>Mai</option>
+                                <option value="6" {% if current_month == 6 %}selected{% endif %}>Juin</option>
+                                <option value="7" {% if current_month == 7 %}selected{% endif %}>Juillet</option>
+                                <option value="8" {% if current_month == 8 %}selected{% endif %}>Août</option>
+                                <option value="9" {% if current_month == 9 %}selected{% endif %}>Septembre</option>
+                                <option value="10" {% if current_month == 10 %}selected{% endif %}>Octobre</option>
+                                <option value="11" {% if current_month == 11 %}selected{% endif %}>Novembre</option>
+                                <option value="12" {% if current_month == 12 %}selected{% endif %}>Décembre</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="year" class="form-label">Année *</label>
+                            <input type="number" class="form-control" id="year" name="year" 
+                                   value="{{ current_year }}" min="2020" max="2030" required>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Attention !</strong> Cette action va calculer les salaires pour tous les employés actifs 
+                        pour la période sélectionnée. Les calculs existants seront mis à jour.
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg" id="calculate-salary-btn">
+                            <i class="fas fa-calculator me-2"></i>
+                            Calculer les Salaires
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Règles de Calcul
+                </h5>
+            </div>
+            <div class="card-body">
+                <h6>Calcul du taux de présence :</h6>
+                <ul class="small">
+                    <li><strong>Présent :</strong> 1 jour complet</li>
+                    <li><strong>Demi-journée :</strong> 0.5 jour</li>
+                    <li><strong>Absent :</strong> 0 jour</li>
+                    <li><strong>Congé :</strong> 0 jour</li>
+                </ul>
+                
+                <hr>
+                
+                <h6>Déductions :</h6>
+                <ul class="small">
+                    <li>Si taux de présence < 75%</li>
+                    <li>Déduction de 15% du salaire de base</li>
+                    <li>Salaire net = Salaire de base - Déduction</li>
+                </ul>
+                
+                <hr>
+                
+                <h6>Exemple :</h6>
+                <div class="small text-muted">
+                    <p>Salaire de base : 3000€</p>
+                    <p>Taux de présence : 70%</p>
+                    <p>Déduction : 3000€ × 15% = 450€</p>
+                    <p><strong>Salaire net : 2550€</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

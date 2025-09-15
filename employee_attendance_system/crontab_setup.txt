@@ -1,0 +1,16 @@
+# Configuration Cron pour le calcul automatique des salaires
+# 
+# Pour installer cette configuration, exécutez :
+# crontab crontab_setup.txt
+#
+# Ou ajoutez manuellement cette ligne à votre crontab :
+# 0 9 1 * * cd /home/calvindev/Documents/django/employee_attendance_system && python3 auto_salary_calculation.py >> /var/log/salary_calculation.log 2>&1
+
+# Calcul automatique des salaires le 1er de chaque mois à 9h00
+0 9 1 * * cd /home/calvindev/Documents/django/employee_attendance_system && python3 auto_salary_calculation.py >> /var/log/salary_calculation.log 2>&1
+
+# Alternative : Calcul tous les jours à 9h00 (pour les tests)
+# 0 9 * * * cd /home/calvindev/Documents/django/employee_attendance_system && python3 auto_salary_calculation.py >> /var/log/salary_calculation.log 2>&1
+
+# Alternative : Calcul le dernier jour de chaque mois à 18h00
+# 0 18 28-31 * * cd /home/calvindev/Documents/django/employee_attendance_system && python3 auto_salary_calculation.py >> /var/log/salary_calculation.log 2>&1

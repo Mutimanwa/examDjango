@@ -1,0 +1,184 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Mes Présences{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-user-clock me-2"></i>
+                Mes Présences
+            </h1>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiques du mois -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card h-100">
+            <div class="card-body text-center">
+                <div class="stat-number text-success">{{ monthly_stats.present }}</div>
+                <div class="stat-label">Jours Présents</div>
+                <i class="fas fa-check-circle fa-2x text-success mt-2"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card h-100">
+            <div class="card-body text-center">
+                <div class="stat-number text-danger">{{ monthly_stats.absent }}</div>
+                <div class="stat-label">Jours Absents</div>
+                <i class="fas fa-times-circle fa-2x text-danger mt-2"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card h-100">
+            <div class="card-body text-center">
+                <div class="stat-number text-warning">{{ monthly_stats.half_day }}</div>
+                <div class="stat-label">Demi-journées</div>
+                <i class="fas fa-clock fa-2x text-warning mt-2"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card h-100">
+            <div class="card-body text-center">
+                <div class="stat-number text-primary">{{ monthly_stats.percentage }}%</div>
+                <div class="stat-label">Taux de Présence</div>
+                <i class="fas fa-chart-line fa-2x text-primary mt-2"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="status" class="form-label">Statut</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="">Tous les statuts</option>
+                            {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="date_from" class="form-label">Date début</label>
+                        <input type="date" class="form-control" id="date_from" name="date_from" 
+                               value="{{ filters.date_from }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="date_to" class="form-label">Date fin</label>
+                        <input type="date" class="form-control" id="date_to" name="date_to" 
+                               value="{{ filters.date_to }}">
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-filter me-1"></i>
+                            Filtrer
+                        </button>
+                        <a href="{% url 'attendance:my_attendance' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>
+                            Effacer
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Avertissement sur les déductions -->
+{% if monthly_stats.percentage < 75 %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Attention !</strong> Votre taux de présence est de {{ monthly_stats.percentage }}%, 
+            ce qui est inférieur à 75%. Une déduction de 15% sera appliquée à votre salaire de base 
+            pour ce mois.
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Liste des présences -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>
+                    Historique des Présences ({{ attendances.count }} résultat{{ attendances.count|pluralize }})
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if attendances %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Statut</th>
+                                <th>Heures</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attendance in attendances %}
+                            <tr>
+                                <td>
+                                    <strong>{{ attendance.date|date:"d/m/Y" }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ attendance.date|date:"l" }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge badge-{{ attendance.status|lower|cut:'_' }}">
+                                        {{ attendance.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if attendance.check_in_time and attendance.check_out_time %}
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ attendance.check_in_time|time:"H:i" }} - {{ attendance.check_out_time|time:"H:i" }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if attendance.notes %}
+                                        <span class="text-muted">{{ attendance.notes }}</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                    <h5>Aucune présence trouvée</h5>
+                    <p>Vos présences apparaîtront ici une fois enregistrées.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

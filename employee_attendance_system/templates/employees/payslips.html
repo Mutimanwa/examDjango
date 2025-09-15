@@ -1,0 +1,128 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Mes Bulletins de Paie{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-file-invoice me-2"></i>
+                Mes Bulletins de Paie
+            </h1>
+        </div>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="year" class="form-label">Année</label>
+                        <select class="form-select" id="year" name="year">
+                            <option value="">Toutes les années</option>
+                            {% for year in available_years %}
+                            <option value="{{ year }}" {% if selected_year == year|stringformat:"s" %}selected{% endif %}>
+                                {{ year }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-filter me-1"></i>
+                            Filtrer
+                        </button>
+                        <a href="{% url 'employees:payslips' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>
+                            Effacer
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Liste des bulletins -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    Bulletins de Paie
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if payslips %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Période</th>
+                                <th>Salaire de Base</th>
+                                <th>Présence</th>
+                                <th>Déduction</th>
+                                <th>Salaire Net</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payslip in payslips %}
+                            <tr>
+                                <td>
+                                    <strong>{{ payslip.month_name }} {{ payslip.year }}</strong>
+                                </td>
+                                <td>{{ payslip.base_salary|floatformat:2 }} €</td>
+                                <td>
+                                    <span class="badge {% if payslip.attendance_percentage >= 75 %}bg-success{% else %}bg-warning{% endif %}">
+                                        {{ payslip.attendance_percentage }}%
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if payslip.deduction_amount > 0 %}
+                                        <span class="text-danger">-{{ payslip.deduction_amount|floatformat:2 }} €</span>
+                                    {% else %}
+                                        <span class="text-success">0,00 €</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>{{ payslip.net_salary|floatformat:2 }} €</strong>
+                                </td>
+                                <td>
+                                    {% if payslip.is_paid %}
+                                        <span class="badge bg-success">Payé</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">En attente</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'employees:download_payslip' payslip.year payslip.month %}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-download me-1"></i>
+                                        Télécharger
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-file-invoice fa-3x mb-3"></i>
+                    <h5>Aucun bulletin de paie disponible</h5>
+                    <p>Vos bulletins de paie apparaîtront ici une fois calculés par l'administration.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
