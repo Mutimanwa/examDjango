@@ -280,15 +280,15 @@ def delete_employee(request, employee_id):
     """Supprimer un employé"""
     employee = get_object_or_404(Employee, id=employee_id)
     user = employee.user
+    employee_name = user.get_full_name()
+    try:
+        user.delete()  # supprime aussi le profil employé (si CASCADE)
+        messages.success(request, f"L'employé {employee_name} a été supprimé avec succès.")
+    except Exception as e:
+        messages.error(request, f"Erreur lors de la suppression : {str(e)}")
+    
+    return redirect('employees:manage_employees')
 
-    if request.method == "POST":
-        user.delete()  # supprime aussi le profil employé
-        messages.success(request, "Employé supprimé avec succès.")
-        return redirect('employees:manage_employees')
-
-    return render(request, 'employees/delete_employee.html', {
-        'employee': employee
-    })
 # gestion de departement 
 @login_required
 def manage_departments(request):
