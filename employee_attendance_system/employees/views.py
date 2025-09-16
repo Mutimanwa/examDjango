@@ -19,6 +19,8 @@ from io import BytesIO
 from .models import Employee, Department, SalaryCalculation
 from attendance.models import Attendance, LeaveRequest
 from .views_payslip import profile, payslips, download_payslip, get_monthly_attendance_stats, get_department_stats
+from .forms import *
+
 
 
 @login_required
@@ -219,9 +221,75 @@ def manage_employees(request):
         'selected_department': department_filter,
     }
     
+    # ajout des employe 
+
+
     return render(request, 'employees/manage_employees.html', context)
 
+@login_required
+def add_employee(request):
+    """Créer un nouvel employé"""
+    if request.method == "POST":
+        user_form = UserForm(request.POST)
+        employee_form = EmployeeForm(request.POST)
 
+        if user_form.is_valid() and employee_form.is_valid():
+            user = user_form.save()
+            employee = employee_form.save(commit=False)
+            employee.user = user
+            employee.save()
+            messages.success(request, "Employé ajouté avec succès.")
+            return redirect('employees:manage_employees')
+    else:
+        user_form = UserForm()
+        employee_form = EmployeeForm()
+
+    return render(request, 'employees/add_employee.html', {
+        'user_form': user_form,
+        'employee_form': employee_form
+    })
+
+
+@login_required
+def edit_employee(request, employee_id):
+    """Modifier un employé existant"""
+    employee = get_object_or_404(Employee, id=employee_id)
+    user = employee.user
+
+    if request.method == "POST":
+        user_form = UserEditForm(request.POST, instance=user)
+        employee_form = EmployeEditForm(request.POST, instance=employee)
+
+        if user_form.is_valid() and employee_form.is_valid():
+            user_form.save()
+            employee_form.save()
+            messages.success(request, "Employé mis à jour avec succès.")
+            return redirect('employees:manage_employees')
+    else:
+        user_form = UserEditForm(instance=user)
+        employee_form = EmployeEditForm(instance=employee)
+
+    return render(request, 'employees/edit_employee.html', {
+        'user_form': user_form,
+        'employee_form': employee_form
+    })
+
+
+@login_required
+def delete_employee(request, employee_id):
+    """Supprimer un employé"""
+    employee = get_object_or_404(Employee, id=employee_id)
+    user = employee.user
+
+    if request.method == "POST":
+        user.delete()  # supprime aussi le profil employé
+        messages.success(request, "Employé supprimé avec succès.")
+        return redirect('employees:manage_employees')
+
+    return render(request, 'employees/delete_employee.html', {
+        'employee': employee
+    })
+# gestion de departement 
 @login_required
 def manage_departments(request):
     """Gestion des départements (HR/Admin uniquement)"""

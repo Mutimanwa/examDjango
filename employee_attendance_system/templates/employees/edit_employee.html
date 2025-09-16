@@ -1,0 +1,39 @@
+{% extends 'base/base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="m-3">Modifier un employé</h2>
+        </div>
+        <div class="card-body">
+            {% if messages %}
+      <div class="mt-2">
+        {% for message in messages %}
+        <div class="alert 
+          {% if message.tags == 'success' %}alert-success
+          {% elif message.tags == 'error' %}alert-danger
+          {% else %}alert-info{% endif %} 
+          alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+            <form method="post">
+                {% csrf_token %}
+                <h5>Informations utilisateur</h5>
+                {{ user_form.as_p }}
+            
+                <h5>Informations employé</h5>
+                {{ employee_form.as_p }}
+            
+                <button type="submit" class="btn btn-primary">Mettre à jour</button>
+                <a href="{% url 'employees:manage_employees' %}" class="btn btn-secondary">Annuler</a>
+              </form>
+        </div>
+    </div>
+  
+
+</div>
+{% endblock %}

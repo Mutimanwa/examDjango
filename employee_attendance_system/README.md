@@ -53,8 +53,8 @@ Système web complet développé avec Django pour la gestion des présences des 
 ### Installation
 ```bash
 # Cloner le projet
-git clone <https://github.com/Mutimanwa/examDjango.git>
-cd examDjango
+git clone <repository-url>
+cd employee_attendance_system
 
 # Installer les dépendances
 pip install -r requirements.txt
@@ -195,11 +195,6 @@ Ce projet est développé dans le cadre d'un examen final pour le cours de progr
 ## Équipe de Développement
 
 - **Mutimanwa**
-- **David**
-- **Keith**
-- **Stacy**
-- **Alan**
-- **Collin**
 
 ## Support
 
@@ -207,4 +202,4 @@ Pour toute question ou problème, contactez l'équipe de développement ou crée
 
 ---
 
-*Développé avec ❤️ par l'équipe BIU*
+*Développé avec ❤️ par l'équipe Mutimanwa de BIU*

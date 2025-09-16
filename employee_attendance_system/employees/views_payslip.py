@@ -13,7 +13,9 @@ from io import BytesIO
 from .models import Employee, Department, SalaryCalculation
 from attendance.models import Attendance, LeaveRequest
 
-
+@login_required
+def add_employe(request):
+    """ Ajout d'un employe """
 @login_required
 def profile(request):
     """Profil de l'employé"""

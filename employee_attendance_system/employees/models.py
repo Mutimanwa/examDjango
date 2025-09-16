@@ -1,6 +1,8 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils.crypto import get_random_string
+
 
 
 class Department(models.Model):
@@ -34,6 +36,11 @@ class Employee(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    # generation d'un id ou matricule
+    def save(self, *args, **kwargs):
+        if not self.employee_id:  # seulement si nouvel employé
+            self.employee_id = "EMP-" + get_random_string(6).upper()
+        super().save(*args, **kwargs)
     
     def __str__(self):
         return f"{self.user.get_full_name()} ({self.employee_id})"
