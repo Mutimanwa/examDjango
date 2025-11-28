@@ -202,4 +202,4 @@ Pour toute question ou problème, contactez l'équipe de développement ou crée
 
 ---
 
-*Développé avec ❤️ par l'équipe Mutimanwa de BIU*
+*Développé avec ❤️ par Calvin Mutimanea de PlC lab bunjumbura*
