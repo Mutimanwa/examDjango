@@ -53,8 +53,8 @@ Système web complet développé avec Django pour la gestion des présences des 
 ### Installation
 ```bash
 # Cloner le projet
-git clone <repository-url>
-cd employee_attendance_system
+git clone https://github.com/Mutimanwa/examDjango.git
+cd examDjango
 
 # Installer les dépendances
 pip install -r requirements.txt
